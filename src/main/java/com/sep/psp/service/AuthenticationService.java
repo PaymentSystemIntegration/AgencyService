@@ -9,7 +9,9 @@ import com.sep.psp.repo.IUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -39,7 +41,7 @@ public class AuthenticationService {
             roleMap.put("role",role.getName());
         }
         jwtToken = jwtService.generateToken(roleMap,user);
-        System.out.println("Token:" + jwtToken);
+        System.out.println("Token ovdeee sam:" + jwtToken);
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .build();

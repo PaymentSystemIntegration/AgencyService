@@ -17,10 +17,16 @@ public class User implements UserDetails {
     @Column(name="email", unique=true, nullable=false)
     private String email;
 
+    @Column(name="pan", unique=true, nullable=false)
+    private String pan;
+
+    @Column(name="balance", unique=true, nullable=false)
+    private double balance;
+
     @Column(name="password", unique=false, nullable=false)
     private String password;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "user_role",
             joinColumns = @JoinColumn(name = "userId", referencedColumnName = "userId"),
             inverseJoinColumns = @JoinColumn(name = "roleId", referencedColumnName = "id"))
@@ -45,6 +51,10 @@ public class User implements UserDetails {
     public String getPassword() {
         return password;
     }
+
+    public String getPan() {return pan; }
+
+    public double getBalance() {return balance; }
 
     @Override
     public String getUsername() {
@@ -89,5 +99,13 @@ public class User implements UserDetails {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public void setPan(String pan) {
+        this.pan = pan;
+    }
+
+    public void setBalance(double balance) {
+        this.balance = balance;
     }
 }
