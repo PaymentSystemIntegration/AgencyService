@@ -1,7 +1,12 @@
 package com.sep.psp.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sep.psp.dto.AuthenticationResponse;
 import com.sep.psp.dto.PaypalOrderPaymentDTO;
+import com.sep.psp.service.AuthenticationRequestFA;
+import com.sep.psp.service.AuthenticationService;
+import com.sep.psp.service.definition.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +21,10 @@ import java.net.URL;
 @RequestMapping("/api/agency")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class AgencyController {
+    @Autowired
+    private AuthenticationService authenticationService;
+    @Autowired
+    private UserService userService;
     @GetMapping("/hello")
     public ResponseEntity<String> authenticate() {
 
@@ -75,5 +84,15 @@ public class AgencyController {
         }
 
         return ResponseEntity.ok().body("{\"token\": \"" + "Hello from crypto microservice didn't reach say gateway!" + "\"}");
+    }
+    @PostMapping(path="/login")
+    public ResponseEntity<String> authenticate(@RequestBody AuthenticationRequestFA request) {
+        System.out.println(request.getEmail() + " " + request.getPassword());
+        AuthenticationResponse authenticationResponse = authenticationService.authenticate(request);
+        String token = "";
+        if(authenticationResponse.getToken() != null)
+            token = authenticationResponse.getToken();
+
+        return ResponseEntity.ok().body("{\"token\": \"" + token + "\"}");
     }
 }
