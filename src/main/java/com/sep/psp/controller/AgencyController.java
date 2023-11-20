@@ -74,7 +74,63 @@ public class AgencyController {
 
                     System.out.println("Response Body: " + response.toString());
 
-                    return ResponseEntity.ok().body("{\"token\": \"" + response.toString() + "\"}");
+                    return ResponseEntity.ok().body(response.toString());
+                }
+            } else {
+                System.out.println("POST request not worked");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return ResponseEntity.ok().body("{\"token\": \"" + "Hello from crypto microservice didn't reach say gateway!" + "\"}");
+    }
+
+    @PostMapping("/captureOrder")
+    public ResponseEntity<String> captureOrder(@RequestBody PaypalOrderPaymentDTO paymentDTO) {
+        System.out.println(paymentDTO.toString());
+        try {
+            // Create the URL object
+            URL url = new URL("http://localhost:8080/gateway/paypal/captureOrder");
+
+            // Open a connection to the URL
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            // Set the request method to POST
+            connection.setRequestMethod("POST");
+
+            // Enable input and output streams
+            connection.setDoOutput(true);
+
+            // Set the content type of the request
+            connection.setRequestProperty("Content-Type", "application/json");
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            // Write the request body
+            String requestBody = objectMapper.writeValueAsString(paymentDTO);  // Replace this with your actual JSON payload
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = requestBody.getBytes("utf-8");
+                os.write(input, 0, input.length);
+            }
+
+            // Get the response code
+            int responseCode = connection.getResponseCode();
+            System.out.println("Response Code: " + responseCode);
+
+            // Process the response
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                // Read the response body
+                try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+                    String inputLine;
+                    StringBuilder response = new StringBuilder();
+
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+
+                    System.out.println("Response Body: " + response.toString());
+
+                    return ResponseEntity.ok().body("\"" + response.toString() + "\"");
                 }
             } else {
                 System.out.println("POST request not worked");
