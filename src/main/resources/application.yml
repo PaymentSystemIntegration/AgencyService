@@ -1,0 +1,6 @@
+server:
+  ssl:
+    key-alias: spring-https
+    key-store: classpath:javatechie.jks
+    key-store-type: JKS
+    key-password: store123

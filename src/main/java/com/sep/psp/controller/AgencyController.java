@@ -10,12 +10,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 
 @RestController
 @RequestMapping("/api/agency")
@@ -34,8 +40,29 @@ public class AgencyController {
     public ResponseEntity<String> createPaypalOrderPayment(@RequestBody PaypalOrderPaymentDTO paymentDTO) {
         System.out.println(paymentDTO.toString());
         try {
+            // Trust all certificates (use only for testing, not recommended for production)
+            TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+
+                public void checkClientTrusted(
+                        java.security.cert.X509Certificate[] certs, String authType) {
+                }
+
+                public void checkServerTrusted(
+                        java.security.cert.X509Certificate[] certs, String authType) {
+                }
+            } };
+
+            SSLContext sc = SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+            // Trust all hosts (use only for testing, not recommended for production)
+            HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
             // Create the URL object
-            URL url = new URL("http://localhost:8080/gateway/paypal/order");
+            URL url = new URL("https://localhost:8080/gateway/paypal/order");
 
             // Open a connection to the URL
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -81,6 +108,10 @@ public class AgencyController {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } catch (KeyManagementException e) {
+            throw new RuntimeException(e);
         }
 
         return ResponseEntity.ok().body("{\"token\": \"" + "Hello from crypto microservice didn't reach say gateway!" + "\"}");
@@ -90,8 +121,29 @@ public class AgencyController {
     public ResponseEntity<String> captureOrder(@RequestBody PaypalOrderPaymentDTO paymentDTO) {
         System.out.println(paymentDTO.toString());
         try {
+            // Trust all certificates (use only for testing, not recommended for production)
+            TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+
+                public void checkClientTrusted(
+                        java.security.cert.X509Certificate[] certs, String authType) {
+                }
+
+                public void checkServerTrusted(
+                        java.security.cert.X509Certificate[] certs, String authType) {
+                }
+            } };
+
+            SSLContext sc = SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+            // Trust all hosts (use only for testing, not recommended for production)
+            HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
             // Create the URL object
-            URL url = new URL("http://localhost:8080/gateway/paypal/captureOrder");
+            URL url = new URL("https://localhost:8080/gateway/paypal/captureOrder");
 
             // Open a connection to the URL
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -137,6 +189,10 @@ public class AgencyController {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } catch (KeyManagementException e) {
+            throw new RuntimeException(e);
         }
 
         return ResponseEntity.ok().body("{\"token\": \"" + "Hello from crypto microservice didn't reach say gateway!" + "\"}");
