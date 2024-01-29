@@ -7,6 +7,7 @@ import com.sep.psp.repo.IOfferRepository;
 import com.sep.psp.repo.IUserRepository;
 import com.sep.psp.service.AuthenticationService;
 import com.sep.psp.service.definition.OfferService;
+import com.sep.psp.service.definition.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -32,6 +33,9 @@ public class OfferServiceImpl implements OfferService {
     private AuthenticationService authenticationService;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private IOfferRepository offerRepository;
 
     @Autowired
@@ -40,20 +44,80 @@ public class OfferServiceImpl implements OfferService {
 
     @Override
     public List<Offer> getAllNotDeleted() {
+
         return offerRepository.findAllByDeleted(false);
     }
 
     @Override
     public Offer get(Integer id) {
-        return offerRepository.findById(id).get();
+        Offer offer = offerRepository.findById(id).orElse(null);
+        if (offer != null) {
+            sendOfferToPSPService(offer); // Send the offer to PSP service
+        } else {
+            System.out.println("Offer with ID " + id + " not found.");
+        }
+        return offer;
+    }
+
+    private void sendToPSPService(OfferDTO dto) {
+        String pspServiceUrl = "http://localhost:8083/api/bankPayment/offerInfo";
+        System.out.println("DTO UNUTAR PSP SERVICE  "+dto.toString());
+        User user= userRepository.findById(1).get();
+        User user2=userRepository.findById(2).get();
+
+        dto.setUserId(user.getUserId());
+        dto.setAcquirerId(user2.getUserId());
+        dto.setBalanceMerchant(user.getBalance());
+        dto.setBalanceAcquirer(user2.getBalance());
+        dto.setPanAcquirer(user2.getPan());
+        dto.setPanMerchant(user.getPan());
+        dto.setUserByMerchantId(user);
+        dto.setUserByAcquirerId(user2);
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-Type", "application/json");
+        System.out.println(headers.toString());
+        HttpEntity<OfferDTO> request = new HttpEntity<>(dto, headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                pspServiceUrl,
+                HttpMethod.POST,
+                request,
+                String.class
+        );
+
+        System.out.println("Response Status: " + response.getStatusCode());
+        System.out.println("Response Body: " + response.getBody());
+
+        // Handle the response or throw an exception based on your requirements
+    }
+
+    private void sendOfferToPSPService(Offer offer) {
+
+        if (offer != null) {
+            OfferDTO dto = new OfferDTO();
+            // Extract necessary information from the Offer entity
+            dto.setId(offer.getId());
+            dto.setName(offer.getName());
+            dto.setAmount(offer.getAmount());
+            dto.setDeleted(offer.getDeleted());
+
+
+
+            sendToPSPService(dto);
+        } else {
+            // Handle case where offer with given ID is not found
+            System.out.println("Offer not found.");
+        }
     }
 
     @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
     @Override
     public Offer add(OfferDTO dto) {
 
-        User merchantUser = userRepository.findById(dto.getUserId()).get();
-        User acquirerUser = userRepository.findById(dto.getAcquirerId()).get();
+        User merchantUser = userRepository.findById(1).get();
+        User acquirerUser = userRepository.findById(2).get();
 
         Offer o = new Offer();
         o.setId(dto.getId());
@@ -62,6 +126,7 @@ public class OfferServiceImpl implements OfferService {
         o.setDeleted(false);
         o.setUser(merchantUser);
         o.setAcquirerUser(acquirerUser);
+        sendToPSPService(dto);
 
 
         return offerRepository.save(o);

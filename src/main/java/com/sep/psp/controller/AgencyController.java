@@ -2,11 +2,15 @@ package com.sep.psp.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sep.psp.dto.AuthenticationResponse;
+import com.sep.psp.dto.OfferDTO;
 import com.sep.psp.dto.PaypalOrderPaymentDTO;
+import com.sep.psp.model.Offer;
 import com.sep.psp.service.AuthenticationRequestFA;
 import com.sep.psp.service.AuthenticationService;
+import com.sep.psp.service.definition.OfferService;
 import com.sep.psp.service.definition.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +20,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/agency")
@@ -25,6 +30,8 @@ public class AgencyController {
     private AuthenticationService authenticationService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private OfferService offerService;
     @GetMapping("/hello")
     public ResponseEntity<String> authenticate() {
 
@@ -94,5 +101,33 @@ public class AgencyController {
             token = authenticationResponse.getToken();
 
         return ResponseEntity.ok().body("{\"token\": \"" + token + "\"}");
+    }
+
+    @GetMapping(path = "/{id}")
+    public ResponseEntity<?> get(@PathVariable Integer id) {
+        Offer o = offerService.get(id);
+        return new ResponseEntity<>(o, HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/offers")
+    public ResponseEntity<?> getAll() {
+        List<Offer> offers = offerService.getAllNotDeleted();
+
+        return new ResponseEntity<>(offers, HttpStatus.OK);
+    }
+
+    @PostMapping(path = "/addOffer")
+    public ResponseEntity<?> add(@RequestBody OfferDTO dto) {
+
+        Offer o = offerService.add(dto);
+
+        return new ResponseEntity<>(o, HttpStatus.OK);
+    }
+
+    @DeleteMapping(path = "/{id}")
+    public ResponseEntity<?> delete(@PathVariable Integer id) {
+        boolean delete = offerService.delete(id);
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
