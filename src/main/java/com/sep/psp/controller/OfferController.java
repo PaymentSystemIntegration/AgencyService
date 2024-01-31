@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +25,7 @@ public class OfferController {
 
 
     @GetMapping(path = "/{id}")
-    public ResponseEntity<?> get(@PathVariable Integer id) {
+    public ResponseEntity<?> get(@PathVariable Integer id) throws NoSuchAlgorithmException, KeyManagementException {
         Offer o = offerService.get(id);
         return new ResponseEntity<>(o, HttpStatus.OK);
     }
@@ -36,7 +38,7 @@ public class OfferController {
     }
 
     @PostMapping(path = "/addOffer")
-    public ResponseEntity<?> add(@RequestBody OfferDTO dto) {
+    public ResponseEntity<?> add(@RequestBody OfferDTO dto) throws NoSuchAlgorithmException, KeyManagementException {
         logger.info("Received request to add offer: {}", dto);
         Offer o = offerService.add(dto);
 

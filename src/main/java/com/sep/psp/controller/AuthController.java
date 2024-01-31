@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,10 +24,14 @@ public class AuthController {
     private AuthenticationService authenticationService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     @PostMapping(path="/login")
     public ResponseEntity<String> authenticate(@RequestBody AuthenticationRequestFA request) {
         System.out.println(request.getEmail() + " " + request.getPassword());
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        request.setPassword(encodedPassword);
         AuthenticationResponse authenticationResponse = authenticationService.authenticate(request);
         String token = "";
         if(authenticationResponse.getToken() != null)

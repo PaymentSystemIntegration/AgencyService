@@ -21,6 +21,12 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -49,7 +55,7 @@ public class OfferServiceImpl implements OfferService {
     }
 
     @Override
-    public Offer get(Integer id) {
+    public Offer get(Integer id) throws NoSuchAlgorithmException, KeyManagementException {
         Offer offer = offerRepository.findById(id).orElse(null);
         if (offer != null) {
             sendOfferToPSPService(offer); // Send the offer to PSP service
@@ -59,8 +65,30 @@ public class OfferServiceImpl implements OfferService {
         return offer;
     }
 
-    private void sendToPSPService(OfferDTO dto) {
-        String pspServiceUrl = "http://localhost:8083/api/bankPayment/offerInfo";
+    private void sendToPSPService(OfferDTO dto) throws NoSuchAlgorithmException, KeyManagementException {
+// Trust all certificates (use only for testing, not recommended for production)
+        TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+
+            public void checkClientTrusted(
+                    java.security.cert.X509Certificate[] certs, String authType) {
+            }
+
+            public void checkServerTrusted(
+                    java.security.cert.X509Certificate[] certs, String authType) {
+            }
+        } };
+
+        SSLContext sc = SSLContext.getInstance("SSL");
+        sc.init(null, trustAllCerts, new java.security.SecureRandom());
+        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+        // Trust all hosts (use only for testing, not recommended for production)
+        HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
+        // Create the URL object
+        String pspServiceUrl = "https://localhost:8083/api/bankPayment/offerInfo";
         System.out.println("DTO UNUTAR PSP SERVICE  "+dto.toString());
         User user= userRepository.findById(1).get();
         User user2=userRepository.findById(2).get();
@@ -93,7 +121,7 @@ public class OfferServiceImpl implements OfferService {
         // Handle the response or throw an exception based on your requirements
     }
 
-    private void sendOfferToPSPService(Offer offer) {
+    private void sendOfferToPSPService(Offer offer) throws NoSuchAlgorithmException, KeyManagementException {
 
         if (offer != null) {
             OfferDTO dto = new OfferDTO();
@@ -114,7 +142,7 @@ public class OfferServiceImpl implements OfferService {
 
     @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
     @Override
-    public Offer add(OfferDTO dto) {
+    public Offer add(OfferDTO dto) throws NoSuchAlgorithmException, KeyManagementException {
 
         User merchantUser = userRepository.findById(1).get();
         User acquirerUser = userRepository.findById(2).get();

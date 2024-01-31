@@ -7,6 +7,7 @@ import com.sep.psp.model.Role;
 import com.sep.psp.model.User;
 import com.sep.psp.repo.IUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,14 +22,17 @@ public class AuthenticationService {
     private IUserRepository userRepository;
 
     @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
     private JwtService jwtService;
 
     public AuthenticationResponse authenticate(AuthenticationRequestFA request) {
-
-        User user = userRepository.findByEmailAndPassword(request.getEmail(),request.getPassword());
+        User user = userRepository.findOneByEmail(request.getEmail());
+        //User user = userRepository.findByEmailAndPassword(request.getEmail(),request.getPassword());
         System.out.println("User:" + user.getEmail());
         var jwtToken = "";
-        if(user == null)
+        if(user == null|| !passwordEncoder.matches(request.getPassword(), user.getPassword()))
             return AuthenticationResponse.builder()
                     .token(null)
                     .refreshToken(null)

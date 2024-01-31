@@ -216,7 +216,7 @@ public class AgencyController {
     }
 
     @GetMapping(path = "/{id}")
-    public ResponseEntity<?> get(@PathVariable Integer id) {
+    public ResponseEntity<?> get(@PathVariable Integer id) throws NoSuchAlgorithmException, KeyManagementException {
         Offer o = offerService.get(id);
         return new ResponseEntity<>(o, HttpStatus.OK);
     }
@@ -229,7 +229,7 @@ public class AgencyController {
     }
 
     @PostMapping(path = "/addOffer")
-    public ResponseEntity<?> add(@RequestBody OfferDTO dto) {
+    public ResponseEntity<?> add(@RequestBody OfferDTO dto) throws NoSuchAlgorithmException, KeyManagementException {
 
         Offer o = offerService.add(dto);
 
